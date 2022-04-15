@@ -1,0 +1,2 @@
+Error: Keystore file unrecognized, are you sure /var/tmp/current_test/keystore.p12 is a valid p12 file?
+Error: Could not generate a signature.

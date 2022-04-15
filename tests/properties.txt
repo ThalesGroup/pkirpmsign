@@ -1,0 +1,76 @@
+#####################
+### SHARED CONFIG ###
+#####################
+
+# The type of the test, for now only 2 values are accepted : SIGN or VERIFY
+# This field is mandatory, meaning there is no default value for it
+TEST_TYPE
+
+# The path of the rpm file to sign or to verify. In the case of a sign test it is also the path of the output signed rpm.
+INPUT_RPM_PATH
+
+# The directory of the rpm file to sign or to verify.
+INPUT_RPM_DIR
+
+# The command arguments for the test. Arguments in this field are separated by space.
+COMMAND_ARGS
+
+# Each test can declare the files it requires. In a lot of cases these files are the same, which is why default files are
+# available in tests/default_files_<sign|verify> directory. If this field is set to true then if there are missing files
+# in the test directory, then these files are copied from the default files directory
+# In some test you need a file to be missing to verify that the command reacts the right way, in these cases you may want to
+# set this field to false
+USE_DEFAULT_FILES_IF_NON_EXISTING
+
+
+#############################
+### SIGNATURE CONFIG ONLY ###
+#############################
+
+# The path of the expected rpm : the already existing rpm to compare the ouput of the signature with.
+# In case of a valid signature test this should be a valid signed rpm, in case of a test where signature should not occur
+# this should be the original, unsigned rpm for example.
+# (default value should be ok in most situations for this one)
+EXPECTED_RPM_OUTPUT_PATH
+
+# The directory of the expected rpm (see EXPECTED_RPM_OUTPUT_PATH)
+EXPECTED_RPM_OUTPUT_DIR
+
+# The directory in which the keystore.p12 containing the signing key and cert should be set
+P12_FILE_DIR
+
+# This field should be set to 'false' to verify how the signing command behaves when the directory containing the keystore
+# for the signature does not exist
+DEFAULT_P12_DIRECTORY_EXISTS
+
+# The password for the keystore containing the signing key and cert
+P12_PASSWORD
+
+# States whether the input rpm should be checked after the test. For example if the test consists in an unexisting input
+# rpm this field shoud be set to false
+VERIFY_RPM_CONTENT_AFTER_SIGNATURE
+
+# States whether the default p12 file (/etc/pki/rpm-keys/keystore.p12) exists or not
+DEFAULT_P12_FILE_EXISTS
+
+# States whether the original rpm should be left intact after the test.
+# This should be true for all tests where signature is KO
+# (this field exists to prevent rpm duplications in the sources)
+# WARNING : This field overrides EXPECTED_RPM_OUTPUT_PATH
+RPM_LEFT_UNSIGNED
+
+
+### VERIFICATION CONFIG ONLY ###
+
+# This field is mandatory, meaning there is no default value for it (only in case the TEST_TYPE is 'VERIFY')
+VERIFICATION_PEM_FILES_PATHS
+
+# This field should be set to 'false' to verify how the verify command behaves when the directory containing the certificates
+# use for verification does not exist
+DEFAULT_VERIFICATION_CERTIFICATE_DIRECTORY_EXISTS
+
+# States whether the default cert files (in directory /etc/pki/rpm-certs/) exist or not
+DEFAULT_CERT_FILES_EXISTS
+
+# The directory in which trusted certificates should be set
+CERTS_DIR

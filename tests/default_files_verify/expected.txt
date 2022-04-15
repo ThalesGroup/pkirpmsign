@@ -1,0 +1,3 @@
+Signature is [1;32mOK[0m
+Signed by :
+C=US, ST=California, O=XML Security Library (http://www.aleksey.com/xmlsec), OU=Test Third Level RSA Certificate, CN=Aleksey Sanin/emailAddress=xmlsec@aleksey.com

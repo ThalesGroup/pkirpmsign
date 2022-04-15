@@ -1,0 +1,1 @@
+Error: Cannot open file /var/tmp/current-test/i_do_not_exist.rpm

@@ -1,0 +1,12 @@
+.idea/
+*.tar.gz
+
+pkirpmsign
+pkirpmverify
+
+SOURCES/
+SPECS/
+BUILD/
+BUILDROOT/
+SRPMS/
+RPMS/

@@ -1,0 +1,1 @@
+Error: Cannot open file /var/tmp/current_test/rpm-certs/i_do_not_exist.pem

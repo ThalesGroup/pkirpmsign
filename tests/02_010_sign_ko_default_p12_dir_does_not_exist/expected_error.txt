@@ -1,0 +1,1 @@
+Error: tried to load default keystore '/etc/pki/rpm-keys/keystore.p12' but file was not found. Please create this file or specify the path to a keystore.

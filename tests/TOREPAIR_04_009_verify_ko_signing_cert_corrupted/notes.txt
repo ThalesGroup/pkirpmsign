@@ -1,0 +1,8 @@
+This test is broken because the code has to be fixed.
+See the 'TODO' comment in populateCertChain function of pkirpmverify.c
+Once done, the same test can be written in case the cert chain is provided in input arguments
+(it might seem redundant but it really is a difference case)
+
+For information :
+    In this test, test.rpm file contains a xmldsig which contains the signing cert.
+    This signing cert has been corrupted : the CN has been changed (from 'Aleksey Sanin' to 'Aleksey Sanon')

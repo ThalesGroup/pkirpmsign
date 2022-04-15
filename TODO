@@ -1,0 +1,14 @@
+ - TASK
+Repair test 'tests/TOREPAIR_04_009_verify_ko_signing_cert_corrupted'
+note : this requires a modification of the code, if signing certificate is corrupted, then xmlsec throws ambiguous error logs during verification.
+It would be better if before calling xmlsec function the certificate could be checked, and in case of error print a comprehensible message.
+This is not critical : corrupted signing certificate is not a common case, and the command should throw an error anyway.
+
+
+ - TASK
+Repair test 'tests/TOREPAIR_04_015_verify_ko_custom_pem_cert_only_partial_chain'
+note : this requires a modification of the code, if the certificate chain given to verify command is incomplete, then xmlsec throws ambiguous error logs.
+It should not be hard to fix using a verification similar to the function pkirpmverify.c->populateCertChain() to make sure the certificate chain is complete, before calling xmlsec verification function, and in case of error print a comprehensible message.
+This is an important fix : A user forgetting a certificate when verifying a signature is not uncommon, in this case they should have a comprehensible error message.
+
+

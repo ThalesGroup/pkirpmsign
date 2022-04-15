@@ -1,0 +1,2 @@
+Error: input file "/var/tmp/current_test/rpm-certs/cacert.pem" does not seem to be in pem format
+Error: Cannot verify signature, [1;31msignature cannot be trusted.[0m

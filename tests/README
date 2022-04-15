@@ -1,0 +1,40 @@
+Test suite is not exhaustive.
+
+
+To add more test, create a new directory under tests/.
+The directory should be named <XX>_<YYY>_<DESCRIPTION>
+
+Value for <XX> :
+01 -> valid signature test case
+02 -> invalid signature test case
+03 -> valid verification test case
+04 -> invalid verification test case
+
+Value for <YY> the index of the test, take the biggest one for a given <XX> value and increment it.
+
+DESCRIPTION includes the type of test (sign/verify and ok/ko), it is redundant with <XX> but it is more human readable.
+It is snake case and should describe the test and be concise
+
+
+Then the test has to be declared in tests/test_cases.txt, if it is not declared here it won't run.
+If a test is declared but does not exist it will throw a warning.
+
+
+The directory <XX>_<YYY>_<DESCRIPTION> must contain a testconfig.properties file.
+This files contains the properties of the test, as described in tests/properties.txt
+Most of the time default values are fine, but each test having its own specificities it helps being able to modify some values.
+Of course there may also be cases for which a test has a specificity not supported by existing properties.
+In this case the property can be created and implemented in the code (which is located in tests/current_test/test_in_container.sh)
+but it is trickier.
+
+
+Tests use both properties and files. There are default files both for signature and verification.
+This prevents the duplication of large files.
+For signature : tests/default_files_sign
+For verification : tests/default_files_verify
+In case these some of these files need to be overriden it is possible to simply add them under <XX>_<YYY>_<DESCRIPTION>
+with the same name. Files under <XX>_<YYY>_<DESCRIPTION> are always used, while files in default directories are only used
+if not already defined.
+
+
+To run the test suite, please refer to the 'Tests' section of the main README.md

@@ -1,0 +1,2 @@
+This test is broken because the code has to be fixed.
+xmlsec library prints tons of logs, ideally it would be possible to only print custom logs, it would fix this test
