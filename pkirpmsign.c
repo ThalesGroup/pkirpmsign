@@ -3,6 +3,7 @@
 #include <libgen.h>
 #include <termios.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #include <xmlsec/xmltree.h>
 #include <xmlsec/xmldsig.h>
@@ -14,38 +15,38 @@
 #define MAX_P12_PASSWORD_SIZE 100
 #define DEFAULT_P12_FILE "/etc/pki/rpm-keys/keystore.p12"
 
-#define ERR_WRONG_NB_OF_ARGS "Error: wrong number of arguments.\n"
-#define ERR_COMMAND_USAGE "Usage: %s <file-to-sign> <p12-file>\nOr (use default /etc/pki/rpm-keys/keystore.p12) : %s <file-to-sign>\n"
-#define ERR_DEFAULT_KEYSTORE_NOT_FOUND "Error: tried to load default keystore '%s' but file was not found. Please create this file or specify the path to a keystore.\n"
-#define ERR_INPUT_KEYSTORE_NOT_FOUND "Error: tried to load input keystore '%s' but file was not found.\n"
-#define ERR_COULD_NOT_GENERATE_SIGNATURE "Error: Could not generate a signature.\n"
+#define ERR_WRONG_NB_OF_ARGS "Wrong number of arguments.\nUsage: %s <file-to-sign> <p12-file>\nOr (use default /etc/pki/rpm-keys/keystore.p12) : %s <file-to-sign>\n"
+#define ERR_DEFAULT_KEYSTORE_NOT_FOUND "Tried to load default keystore '%s' but file was not found. Please create this file or specify the path to a keystore.\n"
+#define ERR_INPUT_KEYSTORE_NOT_FOUND "Tried to load input keystore '%s' but file was not found.\n"
+#define ERR_COULD_NOT_GENERATE_SIGNATURE "Could not generate a signature.\n"
 #define ERR_FILE_DELETE_FAIL "Error deleting file '%s'\n"
-#define ERR_XMLSEC_INIT_FAIL "Error: xmlsec initialization failed.\n"
-#define ERR_XMLSEC_VERSION_INVALID "Error: loaded xmlsec library version is not compatible.\n"
-#define ERR_XMLSEC_CRYPTO_APP_INIT_FAIL "Error: crypto initialization failed.\n"
-#define ERR_XMLSEC_CRYPTO_INIT_FAIL "Error: xmlsec-crypto initialization failed.\n"
-#define ERR_FILE_NOT_FOUND "Error: unable to find file \"%s\"\n"
-#define ERR_XML_TEMPLATE_PARSE_FAIL "Error: unable to parse template\n"
-#define ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND "Error: start node not found in template\n"
-#define ERR_CANNOT_OPEN_FILE "Error: Cannot open file %s\n"
-#define ERR_P12_FILE_FORMAT_NOT_RECOGNIZED "Error: Keystore file unrecognized, are you sure %s is a valid p12 file?\n"
-#define ERR_P12_WONT_OPEN_BECAUSE_INVALID_PASSWORD "Error: Could not access to keystore data, is the password valid?\n"
-#define ERR_KEY_MANAGER_CREATION_FAILED "Error: keys manager creation failed\n"
-#define ERR_SIGNATURE_CONTEXT_CREATION_FAILED "Error: failed to create signature context\n"
-#define ERR_SIGNATURE_FAILED "Error: signature failed\n"
-#define ERR_KEY_MANAGER_ALREADY_INITIALIZED "Error: keys manager already initialized.\n"
-#define ERR_KEY_MANAGER_INITIALIZATION_FAILED "Error: failed to initialize keys manager.\n"
-#define ERR_FAILED_TO_LOAD_KEY_FROM_P12 "Error: failed to load key from \"%s\"\n"
-#define ERR_XMLSEC_KEY_LOAD_FAILED "Error: xmlSecCryptoAppKeyLoad failed: filename=%s\n"
-#define ERR_XMLSEC_SET_KEY_NAME_FAILED "Error: xmlSecKeySetName failed: name=%s\n"
-#define ERR_XMLSEC_ADD_KEY_TO_KEY_MANAGER_FAILED "Error: xmlSecCryptoAppDefaultKeysMngrAdoptKey failed\n"
-#define ERR_INPUT_RPM_FORMAT_INVALID "Error: unrecognized input rpm format.\n"
-#define ERR_HEX_SIGNATURE_CORRUPTED "Error: hex representation of signature corrupted.\n"
-#define ERR_WRITING_TO_FILE_FAILED "Error: Something went wrong when writing to file : %s\n"
-#define ERR_INPUT_PASSWORD_TOO_LONG "Error: Password is too long, it should not exceed %d characters.\n"
+#define ERR_XMLSEC_INIT_FAIL "xmlsec initialization failed.\n"
+#define ERR_XMLSEC_VERSION_INVALID "Loaded xmlsec library version is not compatible.\n"
+#define ERR_XMLSEC_CRYPTO_APP_INIT_FAIL "Crypto initialization failed.\n"
+#define ERR_XMLSEC_CRYPTO_INIT_FAIL "xmlsec-crypto initialization failed.\n"
+#define ERR_FILE_NOT_FOUND "Unable to find file \"%s\"\n"
+#define ERR_XML_TEMPLATE_PARSE_FAIL "Unable to parse template\n"
+#define ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND "Start node not found in template\n"
+#define ERR_CANNOT_OPEN_FILE "Cannot open file %s\n"
+#define ERR_P12_FILE_FORMAT_NOT_RECOGNIZED "Keystore file unrecognized, are you sure %s is a valid p12 file?\n"
+#define ERR_P12_WONT_OPEN_BECAUSE_INVALID_PASSWORD "Could not access to keystore data, is the password valid?\n"
+#define ERR_KEY_MANAGER_CREATION_FAILED "Keys manager creation failed\n"
+#define ERR_SIGNATURE_CONTEXT_CREATION_FAILED "Failed to create signature context\n"
+#define ERR_SIGNATURE_FAILED "Signature failed\n"
+#define ERR_KEY_MANAGER_ALREADY_INITIALIZED "Keys manager already initialized.\n"
+#define ERR_KEY_MANAGER_INITIALIZATION_FAILED "Failed to initialize keys manager.\n"
+#define ERR_FAILED_TO_LOAD_KEY_FROM_P12 "Failed to load key from \"%s\"\n"
+#define ERR_XMLSEC_KEY_LOAD_FAILED "xmlSecCryptoAppKeyLoad failed: filename=%s\n"
+#define ERR_XMLSEC_SET_KEY_NAME_FAILED "xmlSecKeySetName failed: name=%s\n"
+#define ERR_XMLSEC_ADD_KEY_TO_KEY_MANAGER_FAILED "xmlSecCryptoAppDefaultKeysMngrAdoptKey failed\n"
+#define ERR_INPUT_RPM_FORMAT_INVALID "Unrecognized input rpm format.\n"
+#define ERR_HEX_SIGNATURE_CORRUPTED "Hex representation of signature corrupted.\n"
+#define ERR_WRITING_TO_FILE_FAILED "Something went wrong when writing to file : %s\n"
+#define ERR_INPUT_PASSWORD_TOO_LONG "Password is too long, it should not exceed %d characters.\n"
 
 #define PROMPT_FOR_PASSWORD "Please enter password for keystore (max %d characters)\n"
 #define SIGNATURE_SUCCESS "Signature successful!\n"
+#define ERROR_PREFIX "Error: "
 
 xmlSecKeysMngrPtr gKeysMngr = NULL;
 
@@ -75,6 +76,7 @@ char *fromHexToAscii(char *hex);
 void writeTempFile(char *content, int size, char *filename);
 char *tmpFilePath(char *filename);
 int getPassword(char password[]);
+void printErr(char *stringToPrint, ...);
 
 int main(int argc, char **argv) {
 
@@ -85,8 +87,7 @@ int main(int argc, char **argv) {
     assert(argv);
     // argc has to be either 2 or 3
     if (argc > 3 || argc < 2) {
-        fprintf(stderr, ERR_WRONG_NB_OF_ARGS);
-        fprintf(stderr, ERR_COMMAND_USAGE, argv[0], argv[0]);
+        printErr(ERR_WRONG_NB_OF_ARGS, argv[0], argv[0]);
         return(1);
     }
 
@@ -102,7 +103,7 @@ int main(int argc, char **argv) {
         if (access(DEFAULT_P12_FILE, F_OK) == 0) {
             p12FilePath = DEFAULT_P12_FILE;
         } else {
-            fprintf(stderr, ERR_DEFAULT_KEYSTORE_NOT_FOUND, DEFAULT_P12_FILE);
+            printErr(ERR_DEFAULT_KEYSTORE_NOT_FOUND, DEFAULT_P12_FILE);
             return(1);
         }
     // if 2 args, then second arg is the path to the keystore to use
@@ -110,7 +111,7 @@ int main(int argc, char **argv) {
         if (access(argv[2], F_OK) == 0) {
             p12FilePath = argv[2];
         } else {
-            fprintf(stderr, ERR_INPUT_KEYSTORE_NOT_FOUND, argv[2]);
+            printErr(ERR_INPUT_KEYSTORE_NOT_FOUND, argv[2]);
             return(1);
         }
     }
@@ -169,7 +170,7 @@ int main(int argc, char **argv) {
     xmlDocPtr xmlSignature = signFile(headersAndPayloadTmpFilePath, p12FilePath, password);
 
     if (xmlSignature == NULL) {
-        fprintf(stderr, ERR_COULD_NOT_GENERATE_SIGNATURE);
+        printErr(ERR_COULD_NOT_GENERATE_SIGNATURE);
         res = 1;
         goto cleanandreturn;
     }
@@ -270,25 +271,25 @@ xmlDocPtr signFile(char* file_to_sign, char* p12Path,  char* pwd) {
 
     /* Init xmlsec library */
     if (xmlSecInit() < 0) {
-        fprintf(stderr, ERR_XMLSEC_INIT_FAIL);
+        printErr(ERR_XMLSEC_INIT_FAIL);
         return(NULL);
     }
 
     /* Check loaded library version */
     if (xmlSecCheckVersion() != 1) {
-        fprintf(stderr, ERR_XMLSEC_VERSION_INVALID);
+        printErr(ERR_XMLSEC_VERSION_INVALID);
         return(NULL);
     }
 
     /* Init crypto library */
     if (xmlSecCryptoAppInit(NULL) < 0) {
-        fprintf(stderr, ERR_XMLSEC_CRYPTO_APP_INIT_FAIL);
+        printErr(ERR_XMLSEC_CRYPTO_APP_INIT_FAIL);
         return(NULL);
     }
 
     /* Init xmlsec-crypto library */
     if (xmlSecCryptoInit() < 0) {
-        fprintf(stderr, ERR_XMLSEC_CRYPTO_INIT_FAIL);
+        printErr(ERR_XMLSEC_CRYPTO_INIT_FAIL);
         return(NULL);
     }
 
@@ -322,7 +323,7 @@ xmlDocPtr generateCrypto(char* file_to_sign, char* p12Path, char* pwd) {
     assert(file_to_sign);
 
     if (access(file_to_sign, F_OK) != 0) {
-        fprintf(stderr, ERR_FILE_NOT_FOUND, file_to_sign);
+        printErr(ERR_FILE_NOT_FOUND, file_to_sign);
         goto done;
     }
 
@@ -350,47 +351,47 @@ xmlDocPtr generateCrypto(char* file_to_sign, char* p12Path, char* pwd) {
     doc = xmlParseDoc((xmlChar *)fullTemplate);
     free(fullTemplate);
     if ((doc == NULL) || (xmlDocGetRootElement(doc) == NULL)){
-        fprintf(stderr, ERR_XML_TEMPLATE_PARSE_FAIL);
+        printErr(ERR_XML_TEMPLATE_PARSE_FAIL);
         goto done;
     }
 
     /* find start node */
     node = xmlSecFindNode(xmlDocGetRootElement(doc), xmlSecNodeSignature, xmlSecDSigNs);
     if (node == NULL) {
-        fprintf(stderr, ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND);
+        printErr(ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND);
         goto done;
     }
 
     FILE *fp;
     if ((fp = fopen(p12Path, "rb")) == NULL) {
-        fprintf(stderr, ERR_CANNOT_OPEN_FILE, p12Path);
+        printErr(ERR_CANNOT_OPEN_FILE, p12Path);
         goto done;
     }
     PKCS12 *p12 = d2i_PKCS12_fp(fp, NULL);
     fclose(fp);
     if (p12 == NULL) {
-        fprintf(stderr, ERR_P12_FILE_FORMAT_NOT_RECOGNIZED, p12Path);
+        printErr(ERR_P12_FILE_FORMAT_NOT_RECOGNIZED, p12Path);
         goto done;
     }
     if (!PKCS12_parse(p12, pwd, NULL, NULL, NULL)) {
-        fprintf(stderr, ERR_P12_WONT_OPEN_BECAUSE_INVALID_PASSWORD);
+        printErr(ERR_P12_WONT_OPEN_BECAUSE_INVALID_PASSWORD);
         goto done;
     }
     PKCS12_free(p12);
 
     if (xmlSecAppLoadKeys(p12Path, pwd) < 0) {
-        fprintf(stderr, ERR_KEY_MANAGER_CREATION_FAILED);
+        printErr(ERR_KEY_MANAGER_CREATION_FAILED);
         goto done;
     }
 
     dsigCtx = xmlSecDSigCtxCreate(gKeysMngr);
     if (dsigCtx == NULL) {
-        fprintf(stderr, ERR_SIGNATURE_CONTEXT_CREATION_FAILED);
+        printErr(ERR_SIGNATURE_CONTEXT_CREATION_FAILED);
         goto done;
     }
 
     if (xmlSecDSigCtxSign(dsigCtx, node) < 0) {
-        fprintf(stderr, ERR_SIGNATURE_FAILED);
+        printErr(ERR_SIGNATURE_FAILED);
         goto done;
     }
 
@@ -416,23 +417,23 @@ done:
 static int xmlSecAppLoadKeys(char *p12Path, char *pwd) {
 
     if (gKeysMngr != NULL) {
-        fprintf(stderr, ERR_KEY_MANAGER_ALREADY_INITIALIZED);
+        printErr(ERR_KEY_MANAGER_ALREADY_INITIALIZED);
         return(-1);
     }
 
     /* create and initialize keys manager */
     gKeysMngr = xmlSecKeysMngrCreate();
     if (gKeysMngr == NULL) {
-        fprintf(stderr, ERR_KEY_MANAGER_CREATION_FAILED);
+        printErr(ERR_KEY_MANAGER_CREATION_FAILED);
         return(-1);
     }
     if (xmlSecCryptoAppDefaultKeysMngrInit(gKeysMngr) < 0) {
-        fprintf(stderr, ERR_KEY_MANAGER_INITIALIZATION_FAILED);
+        printErr(ERR_KEY_MANAGER_INITIALIZATION_FAILED);
         return(-1);
     }
 
     if (xmlSecAppCryptoSimpleKeysMngrPkcs12KeyLoad(gKeysMngr, p12Path, pwd, NULL) < 0) {
-        fprintf(stderr, ERR_FAILED_TO_LOAD_KEY_FROM_P12, p12Path);
+        printErr(ERR_FAILED_TO_LOAD_KEY_FROM_P12, p12Path);
         free(pwd);
         return(-1);
     }
@@ -454,16 +455,14 @@ int xmlSecAppCryptoSimpleKeysMngrPkcs12KeyLoad(xmlSecKeysMngrPtr mngr, const cha
     key = xmlSecCryptoAppKeyLoad(filename, xmlSecKeyDataFormatPkcs12, pwd,
                     xmlSecCryptoAppGetDefaultPwdCallback(), (void*)filename);
     if (key == NULL) {
-        fprintf(stderr, ERR_XMLSEC_KEY_LOAD_FAILED,
-                xmlSecErrorsSafeString(filename));
+        printErr(ERR_XMLSEC_KEY_LOAD_FAILED, xmlSecErrorsSafeString(filename));
         return(-1);
     }
 
     if (name != NULL) {
         ret = xmlSecKeySetName(key, BAD_CAST name);
         if (ret < 0) {
-            fprintf(stderr, ERR_XMLSEC_SET_KEY_NAME_FAILED,
-                    xmlSecErrorsSafeString(name));
+            printErr(ERR_XMLSEC_SET_KEY_NAME_FAILED, xmlSecErrorsSafeString(name));
             xmlSecKeyDestroy(key);
             return(-1);
         }
@@ -471,7 +470,7 @@ int xmlSecAppCryptoSimpleKeysMngrPkcs12KeyLoad(xmlSecKeysMngrPtr mngr, const cha
 
     ret = xmlSecCryptoAppDefaultKeysMngrAdoptKey(mngr, key);
     if (ret < 0) {
-        fprintf(stderr, ERR_XMLSEC_ADD_KEY_TO_KEY_MANAGER_FAILED);
+        printErr(ERR_XMLSEC_ADD_KEY_TO_KEY_MANAGER_FAILED);
         xmlSecKeyDestroy(key);
         return(-1);
     }
@@ -491,7 +490,7 @@ struct StringWithSize readFileAsByteArray(char *filename) {
 
 	file = fopen(filename, "rb");      // Open the file in binary mode
 	if (file == NULL) {
-		fprintf(stderr, ERR_CANNOT_OPEN_FILE, filename);
+		printErr(ERR_CANNOT_OPEN_FILE, filename);
 		exit(1);
 	}
 	fseek(file, 0, SEEK_END);          // Jump to the end of the file
@@ -561,7 +560,7 @@ char *subArray(char *originalArray, int start, int end) {
 */
 int checkHeaderMagic(char *header) {
 	if (strncmp("8eade8", header, 6) != 0) {
-	    fprintf(stderr, ERR_INPUT_RPM_FORMAT_INVALID);
+	    printErr(ERR_INPUT_RPM_FORMAT_INVALID);
 	    return(1);
 	}
 	return(0);
@@ -773,7 +772,7 @@ char *generateNewSignature(char *xmldsig, char *md5Value) {
     char *error = "ERROR";
 	
 	if (strcmp(error, nullBytes) == 0) {
-		fprintf(stderr, ERR_HEX_SIGNATURE_CORRUPTED);
+		printErr(ERR_HEX_SIGNATURE_CORRUPTED);
 	}
 
     fullSignatureSize = fullSignatureSize + strlen(nullBytes) + 1;
@@ -898,7 +897,7 @@ void writeTempFile(char *content, int size, char *filename) {
         fwrite(content, size, 1, pFile);
     }
     else {
-        fprintf(stderr, ERR_WRITING_TO_FILE_FAILED, filename);
+        printErr(ERR_WRITING_TO_FILE_FAILED, filename);
     }
 
     fclose(pFile);
@@ -944,7 +943,7 @@ int getPassword(char password[]) {
         password[i++] = c;
     }
     if (i >= MAX_P12_PASSWORD_SIZE) {
-        fprintf(stderr, ERR_INPUT_PASSWORD_TOO_LONG, MAX_P12_PASSWORD_SIZE);
+        printErr(ERR_INPUT_PASSWORD_TOO_LONG, MAX_P12_PASSWORD_SIZE);
         return(1);
     }
     password[i] = '\0';
@@ -955,3 +954,19 @@ int getPassword(char password[]) {
     return(0);
 
 }
+
+void printErr(char *stringToPrint, ...) {
+
+    va_list args;
+    va_start(args, stringToPrint);
+    
+    char *messageWithPrefix = (char *)malloc(strlen(stringToPrint) + strlen(ERROR_PREFIX) + 1);
+    strcpy(messageWithPrefix, ERROR_PREFIX);
+    strcat(messageWithPrefix, stringToPrint);
+    vfprintf(stderr, messageWithPrefix, args);
+    free(messageWithPrefix);
+    
+    va_end(args);
+
+}
+

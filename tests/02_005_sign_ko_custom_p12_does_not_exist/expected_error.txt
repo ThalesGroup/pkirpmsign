@@ -1,1 +1,1 @@
-Error: tried to load input keystore '/var/tmp/current_test/i_do_not_exist.p12' but file was not found.
+Error: Tried to load input keystore '/var/tmp/current_test/i_do_not_exist.p12' but file was not found.
