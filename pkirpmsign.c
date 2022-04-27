@@ -875,13 +875,14 @@ char *getMd5ofRpm(char *md5Header, char *hexRpm, int signatureHeaderNb) {
 char *fromHexToAscii(char *hex) {
 
 	char *msg;
+	int i;
 
 	size_t msgSize = strlen(hex) / 2;
 	msg = (char *)malloc(msgSize * sizeof(char));
 
 	memset(msg, '\0', msgSize);
 
-	for (int i = 0; i < strlen(hex); i+=2) {
+	for (i = 0; i < strlen(hex); i+=2) {
 		char msb = (hex[i+0] <= '9' ? hex[i+0] - '0' : (hex[i+0] & 0x5F) - 'A' + 10);
 		char lsb = (hex[i+1] <= '9' ? hex[i+1] - '0' : (hex[i+1] & 0x5F) - 'A' + 10);
 		msg[i / 2] = (msb << 4) | lsb;

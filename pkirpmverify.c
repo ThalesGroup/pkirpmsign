@@ -232,7 +232,8 @@ int main(int argc, char **argv) {
         mngr = loadCertChain(&certFullChain);
 
         // The cert chain is stored in the keymanager, it can now be cleaned from certFullChain
-        for (int i = 0; i < certFullChain.size; i++) {
+        int i;
+        for (i = 0; i < certFullChain.size; i++) {
             X509_free(certFullChain.certChain[i]);
         }
     }
