@@ -1,0 +1,279 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-04-27 10:10+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: pkirpmverify.c:55
+msgid "Cannot get issuer from certificate"
+msgstr ""
+
+#: pkirpmverify.c:54
+msgid "Cannot get subject from certificate"
+msgstr ""
+
+#: pkirpmsign.c:34 pkirpmverify.c:33
+#, c-format
+msgid "Cannot open file %s\n"
+msgstr ""
+
+#: pkirpmverify.c:30
+msgid "Cannot verify signature, [1;31msignature cannot be trusted.[0m\n"
+msgstr ""
+
+#: pkirpmverify.c:57
+#, c-format
+msgid "Cert chain length is too big, max chain length = %d\n"
+msgstr ""
+
+#: pkirpmsign.c:36
+msgid "Could not access to keystore data, is the password valid?\n"
+msgstr ""
+
+#: pkirpmverify.c:58
+msgid "Could not compile regex\n"
+msgstr ""
+
+#: pkirpmverify.c:31
+msgid ""
+"Could not find a certificate chain for signing certificate, [1;31msignature "
+"cannot be trusted.[0m\n"
+msgstr ""
+
+#: pkirpmverify.c:29
+msgid "Could not find xmldsig in input rpm file.\n"
+msgstr ""
+
+#: pkirpmsign.c:25
+msgid "Could not generate a signature.\n"
+msgstr ""
+
+#: pkirpmsign.c:29 pkirpmverify.c:37
+msgid "Crypto initialization failed.\n"
+msgstr ""
+
+#: pkirpmsign.c:26 pkirpmverify.c:32
+#, c-format
+msgid "Error deleting file '%s'\n"
+msgstr ""
+
+#: pkirpmsign.c:53 pkirpmverify.c:64
+msgid "Error: "
+msgstr ""
+
+#: pkirpmsign.c:38 pkirpmverify.c:46
+msgid "Failed to create signature context\n"
+msgstr ""
+
+#: pkirpmsign.c:41 pkirpmverify.c:40
+msgid "Failed to initialize keys manager.\n"
+msgstr ""
+
+#: pkirpmsign.c:42
+#, c-format
+msgid "Failed to load key from \"%s\"\n"
+msgstr ""
+
+#: pkirpmverify.c:43
+msgid "Failed to load pem certificate\n"
+msgstr ""
+
+#: pkirpmverify.c:42
+#, c-format
+msgid "Failed to load pem certificate from \"%s\"\n"
+msgstr ""
+
+#: pkirpmverify.c:53
+#, c-format
+msgid ""
+"File name changed. When it was signed the file name was %s, now it is %s\n"
+msgstr ""
+
+#: pkirpmsign.c:47
+msgid "Hex representation of signature corrupted.\n"
+msgstr ""
+
+#: pkirpmverify.c:41
+#, c-format
+msgid "Input file \"%s\" does not seem to be in pem format\n"
+msgstr ""
+
+#: pkirpmverify.c:51
+msgid "Invalid namespaces list format\n"
+msgstr ""
+
+#: pkirpmsign.c:40
+msgid "Keys manager already initialized.\n"
+msgstr ""
+
+#: pkirpmsign.c:37 pkirpmverify.c:39
+msgid "Keys manager creation failed\n"
+msgstr ""
+
+#: pkirpmsign.c:35
+#, c-format
+msgid "Keystore file unrecognized, are you sure %s is a valid p12 file?\n"
+msgstr ""
+
+#: pkirpmsign.c:28
+msgid "Loaded xmlsec library version is not compatible.\n"
+msgstr ""
+
+#: pkirpmverify.c:49
+msgid "More than 1 signing certificate found, signature cannot be verified.\n"
+msgstr ""
+
+#: pkirpmverify.c:48
+msgid "No signing certificate found, signature cannot be verified.\n"
+msgstr ""
+
+#: pkirpmsign.c:49
+#, c-format
+msgid "Password is too long, it should not exceed %d characters.\n"
+msgstr ""
+
+#: pkirpmsign.c:51
+#, c-format
+msgid "Please enter password for keystore (max %d characters)\n"
+msgstr ""
+
+#: pkirpmverify.c:59
+#, c-format
+msgid "Regex match failed: %s\n"
+msgstr ""
+
+#: pkirpmsign.c:39
+msgid "Signature failed\n"
+msgstr ""
+
+#: pkirpmverify.c:63
+msgid "Signature is [1;31mINVALID[0m\n"
+msgstr ""
+
+#: pkirpmverify.c:61
+msgid "Signature is [1;32mOK[0m\n"
+msgstr ""
+
+#: pkirpmsign.c:52
+msgid "Signature successful!\n"
+msgstr ""
+
+#: pkirpmverify.c:62
+msgid "Signed by :\n"
+msgstr ""
+
+#: pkirpmsign.c:48 pkirpmverify.c:35
+#, c-format
+msgid "Something went wrong when writing to file : %s\n"
+msgstr ""
+
+#: pkirpmverify.c:45
+#, c-format
+msgid "Start node not found in \"%s\"\n"
+msgstr ""
+
+#: pkirpmsign.c:33
+msgid "Start node not found in template\n"
+msgstr ""
+
+#: pkirpmsign.c:23
+#, c-format
+msgid ""
+"Tried to load default keystore '%s' but file was not found. Please create "
+"this file or specify the path to a keystore.\n"
+msgstr ""
+
+#: pkirpmsign.c:24
+#, c-format
+msgid "Tried to load input keystore '%s' but file was not found.\n"
+msgstr ""
+
+#: pkirpmverify.c:50
+msgid "Unable to add namespaces to list\n"
+msgstr ""
+
+#: pkirpmsign.c:31
+#, c-format
+msgid "Unable to find file \"%s\"\n"
+msgstr ""
+
+#: pkirpmverify.c:44
+#, c-format
+msgid "Unable to parse file \"%s\"\n"
+msgstr ""
+
+#: pkirpmsign.c:32
+msgid "Unable to parse template\n"
+msgstr ""
+
+#: pkirpmverify.c:52
+#, c-format
+msgid "Unable to register NS with prefix=\"%s\" and href=\"%s\"\n"
+msgstr ""
+
+#: pkirpmverify.c:47
+msgid "Unknown signature verification error\n"
+msgstr ""
+
+#: pkirpmsign.c:46 pkirpmverify.c:34
+msgid "Unrecognized input rpm format.\n"
+msgstr ""
+
+#: pkirpmverify.c:56
+msgid "Unsupported data to print"
+msgstr ""
+
+#: pkirpmverify.c:28
+#, c-format
+msgid ""
+"Wrong number of arguments.\n"
+"\tUsage: %s <file-to-verify> <pem-cert-chain-file> ...\n"
+"\t(There can be as many pem-cert-chain-file as needed, and they can contain "
+"from a single certificate only to the full certificate chain)\n"
+"\tOr : %s <file-to-verify>\n"
+"This option finds the certificate chain in /etc/pki/rpm-certs/ provided that "
+"the cert chain (except the signing cert) is present in this directory\n"
+msgstr ""
+
+#: pkirpmsign.c:22
+#, c-format
+msgid ""
+"Wrong number of arguments.\n"
+"Usage: %s <file-to-sign> <p12-file>\n"
+"Or (use default /etc/pki/rpm-keys/keystore.p12) : %s <file-to-sign>\n"
+msgstr ""
+
+#: pkirpmsign.c:45
+msgid "xmlSecCryptoAppDefaultKeysMngrAdoptKey failed\n"
+msgstr ""
+
+#: pkirpmsign.c:43
+#, c-format
+msgid "xmlSecCryptoAppKeyLoad failed: filename=%s\n"
+msgstr ""
+
+#: pkirpmsign.c:44
+#, c-format
+msgid "xmlSecKeySetName failed: name=%s\n"
+msgstr ""
+
+#: pkirpmsign.c:27 pkirpmverify.c:36
+msgid "xmlsec initialization failed.\n"
+msgstr ""
+
+#: pkirpmsign.c:30 pkirpmverify.c:38
+msgid "xmlsec-crypto initialization failed.\n"
+msgstr ""

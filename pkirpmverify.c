@@ -7,11 +7,16 @@
 #include <dirent.h>
 #include <regex.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <libxml/xpathInternals.h>
 
 #include <xmlsec/xmltree.h>
 #include <xmlsec/xmldsig.h>
 #include <xmlsec/crypto.h>
+
+#define _(STRING) gettext(STRING)
 
 #define MAX_CHAIN_LENGTH 20
 
@@ -20,43 +25,43 @@
 
 #define DEFAULT_TRUSTED_CERTS_DIR "/etc/pki/rpm-certs/"
 
-#define ERR_WRONG_NB_OF_ARGS "Wrong number of arguments.\n\tUsage: %s <file-to-verify> <pem-cert-chain-file> ...\n\t(There can be as many pem-cert-chain-file as needed, and they can contain from a single certificate only to the full certificate chain)\n\tOr : %s <file-to-verify>\nThis option finds the certificate chain in /etc/pki/rpm-certs/ provided that the cert chain (except the signing cert) is present in this directory\n"
-#define ERR_NO_XMLDSIG_IN_INPUT_RPM "Could not find xmldsig in input rpm file.\n"
-#define ERR_CANNOT_VERIFY_SIGNATURE "Cannot verify signature, \033[1;31msignature cannot be trusted.\033[0m\n"
-#define ERR_CANNOT_FIND_CERT_CHAIN "Could not find a certificate chain for signing certificate, \033[1;31msignature cannot be trusted.\033[0m\n"
-#define ERR_FILE_DELETE_FAIL "Error deleting file '%s'\n"
-#define ERR_CANNOT_OPEN_FILE "Cannot open file %s\n"
-#define ERR_INPUT_RPM_FORMAT_INVALID "Unrecognized input rpm format.\n"
-#define ERR_WRITING_TO_FILE_FAILED "Something went wrong when writing to file : %s\n"
-#define ERR_XMLSEC_INIT_FAIL "xmlsec initialization failed.\n"
-#define ERR_XMLSEC_CRYPTO_APP_INIT_FAIL "Crypto initialization failed.\n"
-#define ERR_XMLSEC_CRYPTO_INIT_FAIL "xmlsec-crypto initialization failed.\n"
-#define ERR_KEY_MANAGER_CREATION_FAILED "Keys manager creation failed\n"
-#define ERR_KEY_MANAGER_INITIALIZATION_FAILED "Failed to initialize keys manager.\n"
-#define ERR_CERT_NOT_IN_PEM_FORMAT "Input file \"%s\" does not seem to be in pem format\n"
-#define ERR_FAILED_TO_LOAD_CERT_FILE "Failed to load pem certificate from \"%s\"\n"
-#define ERR_FAILED_TO_LOAD_PEM_CERT "Failed to load pem certificate\n"
-#define ERR_XML_TEMPLATE_PARSE_FAIL "Unable to parse file \"%s\"\n"
-#define ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND "Start node not found in \"%s\"\n"
-#define ERR_SIGNATURE_CONTEXT_CREATION_FAILED "Failed to create signature context\n"
-#define ERR_UNKNOWN_VERIFICATION_FAILURE "Unknown signature verification error\n"
-#define ERR_NO_SIGNING_CERT_IN_SIGNATURE "No signing certificate found, signature cannot be verified.\n"
-#define ERR_MULTIPLE_SIGNING_CERT_IN_SIGNATURE "More than 1 signing certificate found, signature cannot be verified.\n"
-#define ERR_UNABLE_TO_ADD_XML_NAMESPACES "Unable to add namespaces to list\n"
-#define ERR_INVALID_NAMESPACE_LIST_FORMAT "Invalid namespaces list format\n"
-#define ERR_UNABLE_TO_ADD_SPECIFIC_NAMESPACE "Unable to register NS with prefix=\"%s\" and href=\"%s\"\n"
-#define ERR_FILE_NAME_CHANGED_SINCE_SIGNATURE "File name changed. When it was signed the file name was %s, now it is %s\n"
-#define ERR_CANNOT_GET_CERT_SUBJECT "Cannot get subject from certificate"
-#define ERR_CANNOT_GET_CERT_ISSUER "Cannot get issuer from certificate"
-#define ERR_UNSUPPORTED_CERT_DATA_TO_PRINT "Unsupported data to print"
-#define ERR_CERT_CHAIN_TOO_BIG "Cert chain length is too big, max chain length = %d\n"
-#define ERR_CANNOT_COMPILE_REGEX "Could not compile regex\n"
-#define ERR_REGEX_MATCH_FAIL "Regex match failed: %s\n"
+#define ERR_WRONG_NB_OF_ARGS _("Wrong number of arguments.\n\tUsage: %s <file-to-verify> <pem-cert-chain-file> ...\n\t(There can be as many pem-cert-chain-file as needed, and they can contain from a single certificate only to the full certificate chain)\n\tOr : %s <file-to-verify>\nThis option finds the certificate chain in /etc/pki/rpm-certs/ provided that the cert chain (except the signing cert) is present in this directory\n")
+#define ERR_NO_XMLDSIG_IN_INPUT_RPM _("Could not find xmldsig in input rpm file.\n")
+#define ERR_CANNOT_VERIFY_SIGNATURE _("Cannot verify signature, \033[1;31msignature cannot be trusted.\033[0m\n")
+#define ERR_CANNOT_FIND_CERT_CHAIN _("Could not find a certificate chain for signing certificate, \033[1;31msignature cannot be trusted.\033[0m\n")
+#define ERR_FILE_DELETE_FAIL _("Error deleting file '%s'\n")
+#define ERR_CANNOT_OPEN_FILE _("Cannot open file %s\n")
+#define ERR_INPUT_RPM_FORMAT_INVALID _("Unrecognized input rpm format.\n")
+#define ERR_WRITING_TO_FILE_FAILED _("Something went wrong when writing to file : %s\n")
+#define ERR_XMLSEC_INIT_FAIL _("xmlsec initialization failed.\n")
+#define ERR_XMLSEC_CRYPTO_APP_INIT_FAIL _("Crypto initialization failed.\n")
+#define ERR_XMLSEC_CRYPTO_INIT_FAIL _("xmlsec-crypto initialization failed.\n")
+#define ERR_KEY_MANAGER_CREATION_FAILED _("Keys manager creation failed\n")
+#define ERR_KEY_MANAGER_INITIALIZATION_FAILED _("Failed to initialize keys manager.\n")
+#define ERR_CERT_NOT_IN_PEM_FORMAT _("Input file \"%s\" does not seem to be in pem format\n")
+#define ERR_FAILED_TO_LOAD_CERT_FILE _("Failed to load pem certificate from \"%s\"\n")
+#define ERR_FAILED_TO_LOAD_PEM_CERT _("Failed to load pem certificate\n")
+#define ERR_XML_TEMPLATE_PARSE_FAIL _("Unable to parse file \"%s\"\n")
+#define ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND _("Start node not found in \"%s\"\n")
+#define ERR_SIGNATURE_CONTEXT_CREATION_FAILED _("Failed to create signature context\n")
+#define ERR_UNKNOWN_VERIFICATION_FAILURE _("Unknown signature verification error\n")
+#define ERR_NO_SIGNING_CERT_IN_SIGNATURE _("No signing certificate found, signature cannot be verified.\n")
+#define ERR_MULTIPLE_SIGNING_CERT_IN_SIGNATURE _("More than 1 signing certificate found, signature cannot be verified.\n")
+#define ERR_UNABLE_TO_ADD_XML_NAMESPACES _("Unable to add namespaces to list\n")
+#define ERR_INVALID_NAMESPACE_LIST_FORMAT _("Invalid namespaces list format\n")
+#define ERR_UNABLE_TO_ADD_SPECIFIC_NAMESPACE _("Unable to register NS with prefix=\"%s\" and href=\"%s\"\n")
+#define ERR_FILE_NAME_CHANGED_SINCE_SIGNATURE _("File name changed. When it was signed the file name was %s, now it is %s\n")
+#define ERR_CANNOT_GET_CERT_SUBJECT _("Cannot get subject from certificate")
+#define ERR_CANNOT_GET_CERT_ISSUER _("Cannot get issuer from certificate")
+#define ERR_UNSUPPORTED_CERT_DATA_TO_PRINT _("Unsupported data to print")
+#define ERR_CERT_CHAIN_TOO_BIG _("Cert chain length is too big, max chain length = %d\n")
+#define ERR_CANNOT_COMPILE_REGEX _("Could not compile regex\n")
+#define ERR_REGEX_MATCH_FAIL _("Regex match failed: %s\n")
 
-#define SIGNATURE_OK "Signature is \033[1;32mOK\033[0m\n"
-#define SIGNED_BY "Signed by :\n"
-#define SIGNATURE_INVALID "Signature is \033[1;31mINVALID\033[0m\n"
-#define ERROR_PREFIX "Error: "
+#define SIGNATURE_OK _("Signature is \033[1;32mOK\033[0m\n")
+#define SIGNED_BY _("Signed by :\n")
+#define SIGNATURE_INVALID _("Signature is \033[1;31mINVALID\033[0m\n")
+#define ERROR_PREFIX _("Error: ")
 
 struct certChainWithSize {
     int size;
@@ -106,6 +111,10 @@ void printErr(char *stringToPrint, ...);
 int shouldXmlSecBeClosed = 0;
 
 int main(int argc, char **argv) {
+
+    setlocale(LC_ALL, "");
+    bindtextdomain("pkirpmsign", "/usr/share/locale/");
+    textdomain("pkirpmsign");
 
     /**
     * VERIFY ARGUMENTS
@@ -990,34 +999,40 @@ void printCertData(X509 *cert, int dataToPrint) {
     X509_NAME *x509Name = NULL;
     X509_NAME *x509IssuerName = NULL;
     BIO *outbio = NULL;
+    BIO *outbioErr = NULL;
 
     OpenSSL_add_all_algorithms();
     ERR_load_BIO_strings();
     ERR_load_crypto_strings();
 
-    outbio  = BIO_new_fp(stdout, BIO_NOCLOSE);
+    outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
+    outbioErr = BIO_new_fp(stderr, BIO_NOCLOSE);
 
     switch (dataToPrint) {
         case CERT_SUBJECT :
             if ((x509Name = X509_get_subject_name(cert)) == NULL) {
-                BIO_printf(outbio, ERR_CANNOT_GET_CERT_SUBJECT);
+                BIO_printf(outbioErr, ERROR_PREFIX);
+                BIO_printf(outbioErr, ERR_CANNOT_GET_CERT_SUBJECT);
             }
             X509_NAME_print_ex(outbio, x509Name, 4, 0);
             BIO_printf(outbio, "\n");
             break;
         case CERT_ISSUER :
             if ((x509IssuerName = X509_get_issuer_name(cert)) == NULL) {
-                BIO_printf(outbio, ERR_CANNOT_GET_CERT_ISSUER);
+                BIO_printf(outbioErr, ERROR_PREFIX);
+                BIO_printf(outbioErr, ERR_CANNOT_GET_CERT_ISSUER);
             }
             X509_NAME_print_ex(outbio, x509IssuerName, 4, 0);
             BIO_printf(outbio, "\n");
             break;
         default :
-            BIO_printf(outbio, ERR_UNSUPPORTED_CERT_DATA_TO_PRINT);
-            BIO_printf(outbio, "\n");
+            BIO_printf(outbioErr, ERROR_PREFIX);
+            BIO_printf(outbioErr, ERR_UNSUPPORTED_CERT_DATA_TO_PRINT);
+            BIO_printf(outbioErr, "\n");
     }
 
     BIO_free_all(outbio);
+    BIO_free_all(outbioErr);
 
 }
 
@@ -1189,11 +1204,16 @@ void printErr(char *stringToPrint, ...) {
     va_list args;
     va_start(args, stringToPrint);
     
-    char *messageWithPrefix = (char *)malloc(strlen(stringToPrint) + strlen(ERROR_PREFIX) + 1);
-    strcpy(messageWithPrefix, ERROR_PREFIX);
-    strcat(messageWithPrefix, stringToPrint);
-    vfprintf(stderr, messageWithPrefix, args);
-    free(messageWithPrefix);
+    /**char *i18nPrefix = _(ERROR_PREFIX);
+    char *i18nMessage = _(stringToPrint);
+    
+    char *messageWithPrefix = (char *)malloc(strlen(i18nPrefix) + strlen(i18nMessage) + 1);
+    strcpy(messageWithPrefix, i18nPrefix);
+    strcat(messageWithPrefix, i18nMessage);*/
+    
+    vfprintf(stderr, ERROR_PREFIX, args);
+    vfprintf(stderr, stringToPrint, args);
+    //free(messageWithPrefix);
     
     va_end(args);
 

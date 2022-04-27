@@ -4,6 +4,8 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <libintl.h>
+#include <locale.h>
 
 #include <xmlsec/xmltree.h>
 #include <xmlsec/xmldsig.h>
@@ -12,41 +14,43 @@
 
 #include <openssl/pkcs12.h>
 
+#define _(STRING) gettext(STRING)
+
 #define MAX_P12_PASSWORD_SIZE 100
 #define DEFAULT_P12_FILE "/etc/pki/rpm-keys/keystore.p12"
 
-#define ERR_WRONG_NB_OF_ARGS "Wrong number of arguments.\nUsage: %s <file-to-sign> <p12-file>\nOr (use default /etc/pki/rpm-keys/keystore.p12) : %s <file-to-sign>\n"
-#define ERR_DEFAULT_KEYSTORE_NOT_FOUND "Tried to load default keystore '%s' but file was not found. Please create this file or specify the path to a keystore.\n"
-#define ERR_INPUT_KEYSTORE_NOT_FOUND "Tried to load input keystore '%s' but file was not found.\n"
-#define ERR_COULD_NOT_GENERATE_SIGNATURE "Could not generate a signature.\n"
-#define ERR_FILE_DELETE_FAIL "Error deleting file '%s'\n"
-#define ERR_XMLSEC_INIT_FAIL "xmlsec initialization failed.\n"
-#define ERR_XMLSEC_VERSION_INVALID "Loaded xmlsec library version is not compatible.\n"
-#define ERR_XMLSEC_CRYPTO_APP_INIT_FAIL "Crypto initialization failed.\n"
-#define ERR_XMLSEC_CRYPTO_INIT_FAIL "xmlsec-crypto initialization failed.\n"
-#define ERR_FILE_NOT_FOUND "Unable to find file \"%s\"\n"
-#define ERR_XML_TEMPLATE_PARSE_FAIL "Unable to parse template\n"
-#define ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND "Start node not found in template\n"
-#define ERR_CANNOT_OPEN_FILE "Cannot open file %s\n"
-#define ERR_P12_FILE_FORMAT_NOT_RECOGNIZED "Keystore file unrecognized, are you sure %s is a valid p12 file?\n"
-#define ERR_P12_WONT_OPEN_BECAUSE_INVALID_PASSWORD "Could not access to keystore data, is the password valid?\n"
-#define ERR_KEY_MANAGER_CREATION_FAILED "Keys manager creation failed\n"
-#define ERR_SIGNATURE_CONTEXT_CREATION_FAILED "Failed to create signature context\n"
-#define ERR_SIGNATURE_FAILED "Signature failed\n"
-#define ERR_KEY_MANAGER_ALREADY_INITIALIZED "Keys manager already initialized.\n"
-#define ERR_KEY_MANAGER_INITIALIZATION_FAILED "Failed to initialize keys manager.\n"
-#define ERR_FAILED_TO_LOAD_KEY_FROM_P12 "Failed to load key from \"%s\"\n"
-#define ERR_XMLSEC_KEY_LOAD_FAILED "xmlSecCryptoAppKeyLoad failed: filename=%s\n"
-#define ERR_XMLSEC_SET_KEY_NAME_FAILED "xmlSecKeySetName failed: name=%s\n"
-#define ERR_XMLSEC_ADD_KEY_TO_KEY_MANAGER_FAILED "xmlSecCryptoAppDefaultKeysMngrAdoptKey failed\n"
-#define ERR_INPUT_RPM_FORMAT_INVALID "Unrecognized input rpm format.\n"
-#define ERR_HEX_SIGNATURE_CORRUPTED "Hex representation of signature corrupted.\n"
-#define ERR_WRITING_TO_FILE_FAILED "Something went wrong when writing to file : %s\n"
-#define ERR_INPUT_PASSWORD_TOO_LONG "Password is too long, it should not exceed %d characters.\n"
+#define ERR_WRONG_NB_OF_ARGS _("Wrong number of arguments.\nUsage: %s <file-to-sign> <p12-file>\nOr (use default /etc/pki/rpm-keys/keystore.p12) : %s <file-to-sign>\n")
+#define ERR_DEFAULT_KEYSTORE_NOT_FOUND _("Tried to load default keystore '%s' but file was not found. Please create this file or specify the path to a keystore.\n")
+#define ERR_INPUT_KEYSTORE_NOT_FOUND _("Tried to load input keystore '%s' but file was not found.\n")
+#define ERR_COULD_NOT_GENERATE_SIGNATURE _("Could not generate a signature.\n")
+#define ERR_FILE_DELETE_FAIL _("Error deleting file '%s'\n")
+#define ERR_XMLSEC_INIT_FAIL _("xmlsec initialization failed.\n")
+#define ERR_XMLSEC_VERSION_INVALID _("Loaded xmlsec library version is not compatible.\n")
+#define ERR_XMLSEC_CRYPTO_APP_INIT_FAIL _("Crypto initialization failed.\n")
+#define ERR_XMLSEC_CRYPTO_INIT_FAIL _("xmlsec-crypto initialization failed.\n")
+#define ERR_FILE_NOT_FOUND _("Unable to find file \"%s\"\n")
+#define ERR_XML_TEMPLATE_PARSE_FAIL _("Unable to parse template\n")
+#define ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND _("Start node not found in template\n")
+#define ERR_CANNOT_OPEN_FILE _("Cannot open file %s\n")
+#define ERR_P12_FILE_FORMAT_NOT_RECOGNIZED _("Keystore file unrecognized, are you sure %s is a valid p12 file?\n")
+#define ERR_P12_WONT_OPEN_BECAUSE_INVALID_PASSWORD _("Could not access to keystore data, is the password valid?\n")
+#define ERR_KEY_MANAGER_CREATION_FAILED _("Keys manager creation failed\n")
+#define ERR_SIGNATURE_CONTEXT_CREATION_FAILED _("Failed to create signature context\n")
+#define ERR_SIGNATURE_FAILED _("Signature failed\n")
+#define ERR_KEY_MANAGER_ALREADY_INITIALIZED _("Keys manager already initialized.\n")
+#define ERR_KEY_MANAGER_INITIALIZATION_FAILED _("Failed to initialize keys manager.\n")
+#define ERR_FAILED_TO_LOAD_KEY_FROM_P12 _("Failed to load key from \"%s\"\n")
+#define ERR_XMLSEC_KEY_LOAD_FAILED _("xmlSecCryptoAppKeyLoad failed: filename=%s\n")
+#define ERR_XMLSEC_SET_KEY_NAME_FAILED _("xmlSecKeySetName failed: name=%s\n")
+#define ERR_XMLSEC_ADD_KEY_TO_KEY_MANAGER_FAILED _("xmlSecCryptoAppDefaultKeysMngrAdoptKey failed\n")
+#define ERR_INPUT_RPM_FORMAT_INVALID _("Unrecognized input rpm format.\n")
+#define ERR_HEX_SIGNATURE_CORRUPTED _("Hex representation of signature corrupted.\n")
+#define ERR_WRITING_TO_FILE_FAILED _("Something went wrong when writing to file : %s\n")
+#define ERR_INPUT_PASSWORD_TOO_LONG _("Password is too long, it should not exceed %d characters.\n")
 
-#define PROMPT_FOR_PASSWORD "Please enter password for keystore (max %d characters)\n"
-#define SIGNATURE_SUCCESS "Signature successful!\n"
-#define ERROR_PREFIX "Error: "
+#define PROMPT_FOR_PASSWORD _("Please enter password for keystore (max %d characters)\n")
+#define SIGNATURE_SUCCESS _("Signature successful!\n")
+#define ERROR_PREFIX _("Error: ")
 
 xmlSecKeysMngrPtr gKeysMngr = NULL;
 
@@ -79,6 +83,10 @@ int getPassword(char password[]);
 void printErr(char *stringToPrint, ...);
 
 int main(int argc, char **argv) {
+
+    setlocale(LC_ALL, "");
+    bindtextdomain("pkirpmsign", "/usr/share/locale/");
+    textdomain("pkirpmsign");
 
     /**
     * VERIFY ARGUMENTS
@@ -236,7 +244,7 @@ cleanandreturn:;
     */
     int removedFile = remove(headersAndPayloadTmpFilePath);
     if (removedFile != 0) {
-        printf(ERR_FILE_DELETE_FAIL, headersAndPayloadTmpFilePath);
+        printErr(ERR_FILE_DELETE_FAIL, headersAndPayloadTmpFilePath);
     }
     free(headersAndPayloadTmpFilePath);
 
@@ -960,11 +968,14 @@ void printErr(char *stringToPrint, ...) {
     va_list args;
     va_start(args, stringToPrint);
     
-    char *messageWithPrefix = (char *)malloc(strlen(stringToPrint) + strlen(ERROR_PREFIX) + 1);
+    /*char *messageWithPrefix = (char *)malloc(strlen(stringToPrint) + strlen(ERROR_PREFIX) + 1);
     strcpy(messageWithPrefix, ERROR_PREFIX);
     strcat(messageWithPrefix, stringToPrint);
-    vfprintf(stderr, messageWithPrefix, args);
-    free(messageWithPrefix);
+    vfprintf(stderr, messageWithPrefix, args);*/
+    
+    vfprintf(stderr, ERROR_PREFIX, args);
+    vfprintf(stderr, stringToPrint, args);
+    //free(messageWithPrefix);
     
     va_end(args);
 
