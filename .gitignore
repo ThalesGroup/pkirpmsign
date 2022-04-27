@@ -10,3 +10,5 @@ BUILD/
 BUILDROOT/
 SRPMS/
 RPMS/
+
+.mo

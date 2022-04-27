@@ -7,11 +7,16 @@
 #include <dirent.h>
 #include <regex.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <libxml/xpathInternals.h>
 
 #include <xmlsec/xmltree.h>
 #include <xmlsec/xmldsig.h>
 #include <xmlsec/crypto.h>
+
+#define _(STRING) gettext(STRING)
 
 #define MAX_CHAIN_LENGTH 20
 
@@ -20,44 +25,43 @@
 
 #define DEFAULT_TRUSTED_CERTS_DIR "/etc/pki/rpm-certs/"
 
-#define ERR_WRONG_NB_OF_ARGS "Error: wrong number of arguments.\n"
-#define ERR_COMMAND_USAGE "\tUsage: %s <file-to-verify> <pem-cert-chain-file> ...\n\t(There can be as many pem-cert-chain-file as needed, and they can contain from a single certificate only to the full certificate chain)\n"
-#define ERR_COMMAND_USAGE_ALTERNATE "\tOr : %s <file-to-verify>\nThis option finds the certificate chain in /etc/pki/rpm-certs/ provided that the cert chain (except the signing cert) is present in this directory\n"
-#define ERR_NO_XMLDSIG_IN_INPUT_RPM "Error: Could not find xmldsig in input rpm file.\n"
-#define ERR_CANNOT_VERIFY_SIGNATURE "Error: Cannot verify signature, \033[1;31msignature cannot be trusted.\033[0m\n"
-#define ERR_CANNOT_FIND_CERT_CHAIN "Error: Could not find a certificate chain for signing certificate, \033[1;31msignature cannot be trusted.\033[0m\n"
-#define ERR_FILE_DELETE_FAIL "Error deleting file '%s'\n"
-#define ERR_CANNOT_OPEN_FILE "Error: Cannot open file %s\n"
-#define ERR_INPUT_RPM_FORMAT_INVALID "Error: unrecognized input rpm format.\n"
-#define ERR_WRITING_TO_FILE_FAILED "Error: Something went wrong when writing to file : %s\n"
-#define ERR_XMLSEC_INIT_FAIL "Error: xmlsec initialization failed.\n"
-#define ERR_XMLSEC_CRYPTO_APP_INIT_FAIL "Error: crypto initialization failed.\n"
-#define ERR_XMLSEC_CRYPTO_INIT_FAIL "Error: xmlsec-crypto initialization failed.\n"
-#define ERR_KEY_MANAGER_CREATION_FAILED "Error: keys manager creation failed\n"
-#define ERR_KEY_MANAGER_INITIALIZATION_FAILED "Error: failed to initialize keys manager.\n"
-#define ERR_CERT_NOT_IN_PEM_FORMAT "Error: input file \"%s\" does not seem to be in pem format\n"
-#define ERR_FAILED_TO_LOAD_CERT_FILE "Error: failed to load pem certificate from \"%s\"\n"
-#define ERR_FAILED_TO_LOAD_PEM_CERT "Error: failed to load pem certificate\n"
-#define ERR_XML_TEMPLATE_PARSE_FAIL "Error: unable to parse file \"%s\"\n"
-#define ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND "Error: start node not found in \"%s\"\n"
-#define ERR_SIGNATURE_CONTEXT_CREATION_FAILED "Error: failed to create signature context\n"
-#define ERR_UNKNOWN_VERIFICATION_FAILURE "Error: unknown signature verification error\n"
-#define ERR_NO_SIGNING_CERT_IN_SIGNATURE "Error: No signing certificate found, signature cannot be verified.\n"
-#define ERR_MULTIPLE_SIGNING_CERT_IN_SIGNATURE "Error: More than 1 signing certificate found, signature cannot be verified.\n"
-#define ERR_UNABLE_TO_ADD_XML_NAMESPACES "Error: unable to add namespaces to list\n"
-#define ERR_INVALID_NAMESPACE_LIST_FORMAT "Error: invalid namespaces list format\n"
-#define ERR_UNABLE_TO_ADD_SPECIFIC_NAMESPACE "Error: unable to register NS with prefix=\"%s\" and href=\"%s\"\n"
-#define ERR_FILE_NAME_CHANGED_SINCE_SIGNATURE "Error: file name changed. When it was signed the file name was %s, now it is %s\n"
-#define ERR_CANNOT_GET_CERT_SUBJECT "Error: cannot get subject from certificate"
-#define ERR_CANNOT_GET_CERT_ISSUER "Error: cannot get issuer from certificate"
-#define ERR_UNSUPPORTED_CERT_DATA_TO_PRINT "Error: unsupported data to print"
-#define ERR_CERT_CHAIN_TOO_BIG "Error: cert chain length is too big, max chain length = %d\n"
-#define ERR_CANNOT_COMPILE_REGEX "Error: Could not compile regex\n"
-#define ERR_REGEX_MATCH_FAIL "Error: Regex match failed: %s\n"
+#define ERR_WRONG_NB_OF_ARGS _("Wrong number of arguments.\n\tUsage: %s <file-to-verify> <pem-cert-chain-file> ...\n\t(There can be as many pem-cert-chain-file as needed, and they can contain from a single certificate only to the full certificate chain)\n\tOr : %s <file-to-verify>\nThis option finds the certificate chain in /etc/pki/rpm-certs/ provided that the cert chain (except the signing cert) is present in this directory\n")
+#define ERR_NO_XMLDSIG_IN_INPUT_RPM _("Could not find xmldsig in input rpm file.\n")
+#define ERR_CANNOT_VERIFY_SIGNATURE _("Cannot verify signature, \033[1;31msignature cannot be trusted.\033[0m\n")
+#define ERR_CANNOT_FIND_CERT_CHAIN _("Could not find a certificate chain for signing certificate, \033[1;31msignature cannot be trusted.\033[0m\n")
+#define ERR_FILE_DELETE_FAIL _("Error deleting file '%s'\n")
+#define ERR_CANNOT_OPEN_FILE _("Cannot open file %s\n")
+#define ERR_INPUT_RPM_FORMAT_INVALID _("Unrecognized input rpm format.\n")
+#define ERR_WRITING_TO_FILE_FAILED _("Something went wrong when writing to file : %s\n")
+#define ERR_XMLSEC_INIT_FAIL _("xmlsec initialization failed.\n")
+#define ERR_XMLSEC_CRYPTO_APP_INIT_FAIL _("Crypto initialization failed.\n")
+#define ERR_XMLSEC_CRYPTO_INIT_FAIL _("xmlsec-crypto initialization failed.\n")
+#define ERR_KEY_MANAGER_CREATION_FAILED _("Keys manager creation failed\n")
+#define ERR_KEY_MANAGER_INITIALIZATION_FAILED _("Failed to initialize keys manager.\n")
+#define ERR_CERT_NOT_IN_PEM_FORMAT _("Input file \"%s\" does not seem to be in pem format\n")
+#define ERR_FAILED_TO_LOAD_CERT_FILE _("Failed to load pem certificate from \"%s\"\n")
+#define ERR_FAILED_TO_LOAD_PEM_CERT _("Failed to load pem certificate\n")
+#define ERR_XML_TEMPLATE_PARSE_FAIL _("Unable to parse file \"%s\"\n")
+#define ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND _("Start node not found in \"%s\"\n")
+#define ERR_SIGNATURE_CONTEXT_CREATION_FAILED _("Failed to create signature context\n")
+#define ERR_UNKNOWN_VERIFICATION_FAILURE _("Unknown signature verification error\n")
+#define ERR_NO_SIGNING_CERT_IN_SIGNATURE _("No signing certificate found, signature cannot be verified.\n")
+#define ERR_MULTIPLE_SIGNING_CERT_IN_SIGNATURE _("More than 1 signing certificate found, signature cannot be verified.\n")
+#define ERR_UNABLE_TO_ADD_XML_NAMESPACES _("Unable to add namespaces to list\n")
+#define ERR_INVALID_NAMESPACE_LIST_FORMAT _("Invalid namespaces list format\n")
+#define ERR_UNABLE_TO_ADD_SPECIFIC_NAMESPACE _("Unable to register NS with prefix=\"%s\" and href=\"%s\"\n")
+#define ERR_FILE_NAME_CHANGED_SINCE_SIGNATURE _("File name changed. When it was signed the file name was %s, now it is %s\n")
+#define ERR_CANNOT_GET_CERT_SUBJECT _("Cannot get subject from certificate")
+#define ERR_CANNOT_GET_CERT_ISSUER _("Cannot get issuer from certificate")
+#define ERR_UNSUPPORTED_CERT_DATA_TO_PRINT _("Unsupported data to print")
+#define ERR_CERT_CHAIN_TOO_BIG _("Cert chain length is too big, max chain length = %d\n")
+#define ERR_CANNOT_COMPILE_REGEX _("Could not compile regex\n")
+#define ERR_REGEX_MATCH_FAIL _("Regex match failed: %s\n")
 
-#define SIGNATURE_OK "Signature is \033[1;32mOK\033[0m\n"
-#define SIGNED_BY "Signed by :\n"
-#define SIGNATURE_INVALID "Signature is \033[1;31mINVALID\033[0m\n"
+#define SIGNATURE_OK _("Signature is \033[1;32mOK\033[0m\n")
+#define SIGNED_BY _("Signed by :\n")
+#define SIGNATURE_INVALID _("Signature is \033[1;31mINVALID\033[0m\n")
+#define ERROR_PREFIX _("Error: ")
 
 struct certChainWithSize {
     int size;
@@ -102,10 +106,15 @@ char *fromX509ToString(X509 *cert);
 X509 *fromStringToX509(char *cert);
 int computeNullBytesNumber(long headerSectionOffset);
 int checkRpmFileNameInSignature(char *signature, char *rpmFileName);
+void printErr(char *stringToPrint, ...);
 
 int shouldXmlSecBeClosed = 0;
 
 int main(int argc, char **argv) {
+
+    setlocale(LC_ALL, "");
+    bindtextdomain("pkirpmsign", "/usr/share/locale/");
+    textdomain("pkirpmsign");
 
     /**
     * VERIFY ARGUMENTS
@@ -113,9 +122,7 @@ int main(int argc, char **argv) {
     assert(argc);
     assert(argv);
     if (argc < 2) {
-        fprintf(stderr, ERR_WRONG_NB_OF_ARGS);
-        fprintf(stderr, ERR_COMMAND_USAGE, argv[0]);
-        fprintf(stderr, ERR_COMMAND_USAGE_ALTERNATE, argv[0]);
+        printErr(ERR_WRONG_NB_OF_ARGS, argv[0], argv[0]);
         return(1);
     }
 
@@ -166,7 +173,7 @@ int main(int argc, char **argv) {
     */
 	char *pkiSignatureHeader = getEntry("000003f0", signatureHeaders, nbOfSignatureHeaders);
 	if (NULL == pkiSignatureHeader) { // If entry is not present then it is not an xmldsig signed rpm file
-        fprintf(stderr, ERR_NO_XMLDSIG_IN_INPUT_RPM);
+        printErr(ERR_NO_XMLDSIG_IN_INPUT_RPM);
 	    res = 1;
 	    goto cleanandreturn;
 	}
@@ -174,7 +181,7 @@ int main(int argc, char **argv) {
 	char *signature = getSignature(pkiSignatureHeader, file.content, nbOfSignatureHeaders);
 	// If entry does not start with xml tag then it is not an xmldsig signed rpm file
 	if (strncmp("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", signature, 38) != 0) {
-        fprintf(stderr, ERR_NO_XMLDSIG_IN_INPUT_RPM);
+        printErr(ERR_NO_XMLDSIG_IN_INPUT_RPM);
 	    res = 1;
 	    goto cleanandreturn;
 	}
@@ -185,7 +192,7 @@ int main(int argc, char **argv) {
     */
     int filenameValidity = checkRpmFileNameInSignature(signature, filename);
     if (filenameValidity != 0) {
-        fprintf(stderr, ERR_CANNOT_VERIFY_SIGNATURE);
+        printErr(ERR_CANNOT_VERIFY_SIGNATURE);
 	    res = 1;
 	    goto cleanandreturn;
     }
@@ -217,7 +224,7 @@ int main(int argc, char **argv) {
 
         // Check the chain is complete (the full cert chain may not be found, in this case the signature is not trusted)
         if (certFullChain.chainComplete == false) {
-            fprintf(stderr, ERR_CANNOT_FIND_CERT_CHAIN);
+            printErr(ERR_CANNOT_FIND_CERT_CHAIN);
             return(-1);
         }
 
@@ -225,13 +232,14 @@ int main(int argc, char **argv) {
         mngr = loadCertChain(&certFullChain);
 
         // The cert chain is stored in the keymanager, it can now be cleaned from certFullChain
-        for (int i = 0; i < certFullChain.size; i++) {
+        int i;
+        for (i = 0; i < certFullChain.size; i++) {
             X509_free(certFullChain.certChain[i]);
         }
     }
 
     if (mngr == NULL) {
-        fprintf(stderr, ERR_CANNOT_VERIFY_SIGNATURE);
+        printErr(ERR_CANNOT_VERIFY_SIGNATURE);
         return(-1);
     }
     if (verifySignature(mngr, signature, signingCert) < 0) {
@@ -256,7 +264,7 @@ cleanandreturn:
     */
     int removedFile = remove(headersAndPayloadTmpFilePath);
     if (removedFile != 0) {
-        fprintf(stderr, ERR_FILE_DELETE_FAIL, headersAndPayloadTmpFilePath);
+        printErr(ERR_FILE_DELETE_FAIL, headersAndPayloadTmpFilePath);
     }
     free(headersAndPayloadTmpFilePath);
 
@@ -279,7 +287,7 @@ struct StringWithSize readFileAsByteArray(char *filename) {
 
 	file = fopen(filename, "rb");      // Open the file in binary mode
 	if (file == NULL) {
-		fprintf(stderr, ERR_CANNOT_OPEN_FILE, filename);
+		printErr(ERR_CANNOT_OPEN_FILE, filename);
 		exit(1);
 	}
 	fseek(file, 0, SEEK_END);          // Jump to the end of the file
@@ -365,7 +373,7 @@ char *subArrayLong(char *originalArray, long start, long end) {
 */
 void checkHeaderMagic(char *header) {
 	if (strncmp("8eade8", header, 6) != 0) {
-	    fprintf(stderr, ERR_INPUT_RPM_FORMAT_INVALID);
+	    printErr(ERR_INPUT_RPM_FORMAT_INVALID);
 	    exit(1);
 	}
 }
@@ -536,7 +544,7 @@ void writeTempFile(char *content, int size, char *filename) {
         fwrite(content, size, 1, pFile);
     }
     else {
-        fprintf(stderr, ERR_WRITING_TO_FILE_FAILED, filename);
+        printErr(ERR_WRITING_TO_FILE_FAILED, filename);
     }
 
     fclose(pFile);
@@ -613,16 +621,16 @@ int initVerifyLibrary(xsltSecurityPrefsPtr xsltSecPrefs) {
     xsltSetSecurityPrefs(xsltSecPrefs,  XSLT_SECPREF_WRITE_NETWORK,    xsltSecurityForbid);
     xsltSetDefaultSecurityPrefs(xsltSecPrefs);
     if (xmlSecInit() < 0) {
-        fprintf(stderr, ERR_XMLSEC_INIT_FAIL);
+        printErr(ERR_XMLSEC_INIT_FAIL);
         return 1;
     }
 
     if (xmlSecCryptoAppInit(NULL) < 0) {
-        fprintf(stderr, ERR_XMLSEC_CRYPTO_APP_INIT_FAIL);
+        printErr(ERR_XMLSEC_CRYPTO_APP_INIT_FAIL);
         return 1;
     }
     if (xmlSecCryptoInit() < 0) {
-        fprintf(stderr, ERR_XMLSEC_CRYPTO_INIT_FAIL);
+        printErr(ERR_XMLSEC_CRYPTO_INIT_FAIL);
         return 1;
     }
 
@@ -648,11 +656,11 @@ xmlSecKeysMngrPtr load_trusted_certs(char** certFiles, int filesSize) {
      */
     mngr = xmlSecKeysMngrCreate();
     if (mngr == NULL) {
-        fprintf(stderr, ERR_KEY_MANAGER_CREATION_FAILED);
+        printErr(ERR_KEY_MANAGER_CREATION_FAILED);
         return(NULL);
     }
     if (xmlSecCryptoAppDefaultKeysMngrInit(mngr) < 0) {
-        fprintf(stderr, ERR_KEY_MANAGER_INITIALIZATION_FAILED);
+        printErr(ERR_KEY_MANAGER_INITIALIZATION_FAILED);
         xmlSecKeysMngrDestroy(mngr);
         return(NULL);
     }
@@ -668,7 +676,7 @@ xmlSecKeysMngrPtr load_trusted_certs(char** certFiles, int filesSize) {
         subPemFile[pemFile.size] = '\0';
 
         if (strstr(subPemFile, "\n-----END CERTIFICATE-----") == 0) {
-            fprintf(stderr, ERR_CERT_NOT_IN_PEM_FORMAT, certFiles[i]);
+            printErr(ERR_CERT_NOT_IN_PEM_FORMAT, certFiles[i]);
             return NULL;
         }
 
@@ -678,7 +686,7 @@ xmlSecKeysMngrPtr load_trusted_certs(char** certFiles, int filesSize) {
             memmove(subPemFile, subPemFile + endOfCertPlusFooter, 1 + strlen(subPemFile) - endOfCertPlusFooter);
 
             if (xmlSecCryptoAppKeysMngrCertLoadMemory(mngr, singleCert, strlen(singleCert), xmlSecKeyDataFormatPem, xmlSecKeyDataTypeTrusted) < 0) {
-                fprintf(stderr, ERR_FAILED_TO_LOAD_CERT_FILE, certFiles[i]);
+                printErr(ERR_FAILED_TO_LOAD_CERT_FILE, certFiles[i]);
                 xmlSecKeysMngrDestroy(mngr);
                 return(NULL);
                 free(singleCert);
@@ -709,11 +717,11 @@ xmlSecKeysMngrPtr loadCertChain(struct certChainWithSize *certFullChain) {
      */
     mngr = xmlSecKeysMngrCreate();
     if (mngr == NULL) {
-        fprintf(stderr, ERR_KEY_MANAGER_CREATION_FAILED);
+        printErr(ERR_KEY_MANAGER_CREATION_FAILED);
         return(NULL);
     }
     if (xmlSecCryptoAppDefaultKeysMngrInit(mngr) < 0) {
-        fprintf(stderr, ERR_KEY_MANAGER_INITIALIZATION_FAILED);
+        printErr(ERR_KEY_MANAGER_INITIALIZATION_FAILED);
         xmlSecKeysMngrDestroy(mngr);
         return(NULL);
     }
@@ -736,7 +744,7 @@ xmlSecKeysMngrPtr loadCertChain(struct certChainWithSize *certFullChain) {
             memmove(subPemFile, subPemFile + endOfCertPlusFooter, 1 + strlen(subPemFile) - endOfCertPlusFooter);
 
             if (xmlSecCryptoAppKeysMngrCertLoadMemory(mngr, singleCert, strlen(singleCert), xmlSecKeyDataFormatPem, xmlSecKeyDataTypeTrusted) < 0) {
-                fprintf(stderr, ERR_FAILED_TO_LOAD_PEM_CERT);
+                printErr(ERR_FAILED_TO_LOAD_PEM_CERT);
                 xmlSecKeysMngrDestroy(mngr);
                 free(singleCert);
                 free(pemFile.content);
@@ -768,27 +776,27 @@ int verifySignature(xmlSecKeysMngrPtr mngr, const char* xmlDSig, char* signingCe
     /* load file */
     doc = xmlParseDoc(xmlDSig);
     if ((doc == NULL) || (xmlDocGetRootElement(doc) == NULL)){
-        fprintf(stderr, ERR_XML_TEMPLATE_PARSE_FAIL, xmlDSig);
+        printErr(ERR_XML_TEMPLATE_PARSE_FAIL, xmlDSig);
         goto done;
     }
 
     /* find start node */
     node = xmlSecFindNode(xmlDocGetRootElement(doc), xmlSecNodeSignature, xmlSecDSigNs);
     if (node == NULL) {
-        fprintf(stderr, ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND, xmlDSig);
+        printErr(ERR_XML_TEMPLATE_1ST_NODE_NOT_FOUND, xmlDSig);
         goto done;
     }
 
     /* create signature context */
     dsigCtx = xmlSecDSigCtxCreate(mngr);
     if (dsigCtx == NULL) {
-        fprintf(stderr, ERR_SIGNATURE_CONTEXT_CREATION_FAILED);
+        printErr(ERR_SIGNATURE_CONTEXT_CREATION_FAILED);
         goto done;
     }
 
     /* Verify signature */
     if (xmlSecDSigCtxVerify(dsigCtx, node) < 0) {
-        fprintf(stderr, ERR_UNKNOWN_VERIFICATION_FAILURE);
+        printErr(ERR_UNKNOWN_VERIFICATION_FAILURE);
         goto done;
     }
 
@@ -857,10 +865,10 @@ void cleanup(xmlSecKeysMngrPtr mngr, xsltSecurityPrefsPtr xsltSecPrefs) {
 char *getValuesFromXml(xmlNodeSetPtr nodes) {
 
     if (!nodes) {
-        fprintf(stderr, ERR_NO_SIGNING_CERT_IN_SIGNATURE);
+        printErr(ERR_NO_SIGNING_CERT_IN_SIGNATURE);
     }
     if (nodes->nodeNr != 1) {
-        fprintf(stderr, ERR_MULTIPLE_SIGNING_CERT_IN_SIGNATURE);
+        printErr(ERR_MULTIPLE_SIGNING_CERT_IN_SIGNATURE);
     }
 
     xmlNodePtr cur = nodes->nodeTab[0];
@@ -883,7 +891,7 @@ int register_namespaces(xmlXPathContextPtr xpathCtx, const xmlChar* nsList) {
 
     nsListDup = xmlStrdup(nsList);
     if (nsListDup == NULL) {
-        fprintf(stderr, ERR_UNABLE_TO_ADD_XML_NAMESPACES);
+        printErr(ERR_UNABLE_TO_ADD_XML_NAMESPACES);
         return(-1);
     }
 
@@ -897,7 +905,7 @@ int register_namespaces(xmlXPathContextPtr xpathCtx, const xmlChar* nsList) {
         prefix = next;
         next = (xmlChar*)xmlStrchr(next, '=');
         if (next == NULL) {
-            fprintf(stderr, ERR_INVALID_NAMESPACE_LIST_FORMAT);
+            printErr(ERR_INVALID_NAMESPACE_LIST_FORMAT);
             xmlFree(nsListDup);
             return(-1);
         }
@@ -912,7 +920,7 @@ int register_namespaces(xmlXPathContextPtr xpathCtx, const xmlChar* nsList) {
 
         /* do register namespace */
         if (xmlXPathRegisterNs(xpathCtx, prefix, href) != 0) {
-            fprintf(stderr, ERR_UNABLE_TO_ADD_SPECIFIC_NAMESPACE, prefix, href);
+            printErr(ERR_UNABLE_TO_ADD_SPECIFIC_NAMESPACE, prefix, href);
             xmlFree(nsListDup);
             return(-1);
         }
@@ -975,7 +983,7 @@ int checkRpmFileNameInSignature(char *signature, char *rpmFileName) {
     valueToCompare = concatStrings(valueToCompare, ".rpmpkisign");
 
     if (strcmp(valueToCompare, signatureUri) != 0) {
-        fprintf(stderr, ERR_FILE_NAME_CHANGED_SINCE_SIGNATURE, signatureUri, valueToCompare);
+        printErr(ERR_FILE_NAME_CHANGED_SINCE_SIGNATURE, signatureUri, valueToCompare);
         return(1);
     }
 
@@ -992,34 +1000,40 @@ void printCertData(X509 *cert, int dataToPrint) {
     X509_NAME *x509Name = NULL;
     X509_NAME *x509IssuerName = NULL;
     BIO *outbio = NULL;
+    BIO *outbioErr = NULL;
 
     OpenSSL_add_all_algorithms();
     ERR_load_BIO_strings();
     ERR_load_crypto_strings();
 
-    outbio  = BIO_new_fp(stdout, BIO_NOCLOSE);
+    outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
+    outbioErr = BIO_new_fp(stderr, BIO_NOCLOSE);
 
     switch (dataToPrint) {
         case CERT_SUBJECT :
             if ((x509Name = X509_get_subject_name(cert)) == NULL) {
-                BIO_printf(outbio, ERR_CANNOT_GET_CERT_SUBJECT);
+                BIO_printf(outbioErr, ERROR_PREFIX);
+                BIO_printf(outbioErr, ERR_CANNOT_GET_CERT_SUBJECT);
             }
             X509_NAME_print_ex(outbio, x509Name, 4, 0);
             BIO_printf(outbio, "\n");
             break;
         case CERT_ISSUER :
             if ((x509IssuerName = X509_get_issuer_name(cert)) == NULL) {
-                BIO_printf(outbio, ERR_CANNOT_GET_CERT_ISSUER);
+                BIO_printf(outbioErr, ERROR_PREFIX);
+                BIO_printf(outbioErr, ERR_CANNOT_GET_CERT_ISSUER);
             }
             X509_NAME_print_ex(outbio, x509IssuerName, 4, 0);
             BIO_printf(outbio, "\n");
             break;
         default :
-            BIO_printf(outbio, ERR_UNSUPPORTED_CERT_DATA_TO_PRINT);
-            BIO_printf(outbio, "\n");
+            BIO_printf(outbioErr, ERROR_PREFIX);
+            BIO_printf(outbioErr, ERR_UNSUPPORTED_CERT_DATA_TO_PRINT);
+            BIO_printf(outbioErr, "\n");
     }
 
     BIO_free_all(outbio);
+    BIO_free_all(outbioErr);
 
 }
 
@@ -1072,7 +1086,7 @@ void populateCertChain(struct certChainWithSize *chainToBuild) {
                         return;
                     } else if (chainToBuild->size >= MAX_CHAIN_LENGTH) {
                         closedir(dp);
-                        fprintf(stderr, ERR_CERT_CHAIN_TOO_BIG, MAX_CHAIN_LENGTH);
+                        printErr(ERR_CERT_CHAIN_TOO_BIG, MAX_CHAIN_LENGTH);
                         return;
                     }
                     populateCertChain(chainToBuild);
@@ -1127,7 +1141,7 @@ int regexMatch(char *inputToTest, char *regexString) {
 
     reti = regcomp(&regex, regexString, 0);
     if (reti) {
-        fprintf(stderr, ERR_CANNOT_COMPILE_REGEX);
+        printErr(ERR_CANNOT_COMPILE_REGEX);
         exit(1);
     }
 
@@ -1140,7 +1154,7 @@ int regexMatch(char *inputToTest, char *regexString) {
     }
     else { // Error
         regerror(reti, &regex, msgbuf, sizeof(msgbuf));
-        fprintf(stderr, ERR_REGEX_MATCH_FAIL, msgbuf);
+        printErr(ERR_REGEX_MATCH_FAIL, msgbuf);
         result = -1;
     }
 
@@ -1185,3 +1199,24 @@ X509 *fromStringToX509(char *cert) {
     BIO_free_all(bio);
     return certificate;
 }
+
+void printErr(char *stringToPrint, ...) {
+
+    va_list args;
+    va_start(args, stringToPrint);
+    
+    /**char *i18nPrefix = _(ERROR_PREFIX);
+    char *i18nMessage = _(stringToPrint);
+    
+    char *messageWithPrefix = (char *)malloc(strlen(i18nPrefix) + strlen(i18nMessage) + 1);
+    strcpy(messageWithPrefix, i18nPrefix);
+    strcat(messageWithPrefix, i18nMessage);*/
+    
+    vfprintf(stderr, ERROR_PREFIX, args);
+    vfprintf(stderr, stringToPrint, args);
+    //free(messageWithPrefix);
+    
+    va_end(args);
+
+}
+

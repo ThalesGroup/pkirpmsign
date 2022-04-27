@@ -1,4 +1,4 @@
-Error: wrong number of arguments.
+Error: Wrong number of arguments.
 	Usage: /var/tmp/current_test/pkirpmverify <file-to-verify> <pem-cert-chain-file> ...
 	(There can be as many pem-cert-chain-file as needed, and they can contain from a single certificate only to the full certificate chain)
 	Or : /var/tmp/current_test/pkirpmverify <file-to-verify>

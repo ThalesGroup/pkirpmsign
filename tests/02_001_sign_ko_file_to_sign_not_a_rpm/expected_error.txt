@@ -1,1 +1,1 @@
-Error: unrecognized input rpm format.
+Error: Unrecognized input rpm format.
